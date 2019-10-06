@@ -1,0 +1,349 @@
+.text
+.globl main
+
+main:
+j run                                                            #goto run
+
+run:                                                             #run
+
+la $t0,hash                                                      #t0=hash base pointer
+lw $t1,N                                                         #t1=N
+li $t2,0                                                         #t2=0 / i=0
+li $t3,0                                                         #t3=0 /telos=0
+
+for:                                                             #for loop
+bge $t2,$t1,efor                                                 #while(t2<t1) / while(i<N)
+sw $zero,($t0)                                                   #hash[i] = 0
+addi $t0,$t0,4                                                   #move to the next slot
+addi $t2,$t2,1                                                   #t2++ / i++
+j for                                                            #jump to for loop
+
+efor:                                                            #efor loop
+li $v0,4
+la $a0,msg1
+syscall                                                          #print the menu
+
+li $v0,5
+syscall                                                          #read integer
+move $t0,$v0                                                     #Store it to t0
+
+li $t1,1                                                         #t1=1
+beq $t0,$t1,choice1                                              #if choice==1 goto choice1
+addi $t1,$t1,1                                                   #t1++ / t1=2
+beq $t0,$t1,choice2                                              #if choice==2 goto choice2
+addi $t1,$t1,1                                                   #t1++ / t1=3
+beq $t0,$t1,choice3                                              #if choice==3 goto choice3
+addi $t1,$t1,1                                                   #t1++ / t1=4
+beq $t0,$t1,choice4                                              #if choice==4 goto choice4
+j whileCheck                                                     #goto check the while condition
+
+choice1:                                                         #Choice1
+li $v0,4
+la $a0,msg2
+syscall                                                          #print msg2
+
+li $v0,5
+syscall                                                          #read the key
+
+move $t0,$v0                                                     #t0=key
+
+ble $t0,$zero,choice1_else                                       #if key<=0 goto choice1_else
+addi $sp,$sp,-16                                                 #Create a stack(4)
+sw $t0,($sp)                                                     #Save the t-register t0
+sw $t1,4($sp)                                                    #Save the t-register t1
+sw $t2,8($sp)                                                    #Save the t-register t2
+sw $t3,12($sp)                                                   #Save the t-register t3
+
+la $a0,hash		                                         #first argument is the hash[]
+move $a1,$t0	                                                 #second argument is the key
+jal insertkey	                                                 #goto insertKey method
+
+lw $t0,($sp)                                                     #Load t-register t0
+lw $t1,4($sp)                                                    #Load t-register t1
+lw $t2,8($sp)                                                    #Load t-register t2
+lw $t3,12($sp)                                                   #Load t-register t3
+addi $sp,$sp,16                                                  #Delete the stack(4)
+
+j whileCheck                                                     #goto whileCheck
+
+choice1_else:                                                    #choice1_else
+li $v0,4
+la $a0,msg3
+syscall                                                          #print msg3
+
+j whileCheck                                                     #goto whileCheck
+
+choice2:                                                         #choice2
+li $v0,4
+la $a0,msg4
+syscall                                                          #print msg4
+
+li $v0,5
+syscall                                                          #read the key
+move $t0,$v0                                                     #t0=key
+
+addi $sp,$sp,-16                                                 #Create a stack(4)
+sw $t0,0($sp)                                                    #Save t-register t0
+sw $t1,4($sp)                                                    #Save t-register t1
+sw $t2,8($sp)                                                    #Save t-register t2
+sw $t3,12($sp)                                                   #Save t-register t3
+
+la $a0,hash		                                         #first argument is the hash[]
+move $a1,$t0	                                                 #second argument is the key
+jal findkey		                                         #goto findKey method
+
+lw $t0,0($sp)                                                    #Load t-register t0
+lw $t1,4($sp)                                                    #Load t-register t1
+lw $t2,8($sp)                                                    #Load t-register t2
+lw $t3,12($sp)                                                   #Load t-register t3
+addi $sp,$sp,16                                                  #Delete the stack(4)
+
+move $t0,$v0	                                                 #t0 : pos = findkey(hash,key)
+
+li $t1,-1                                                        #t1=-1
+bne $t0,$t1,choice2_else                                         #if (t0!=t1) goto choice2_else
+li $v0,4
+la $a0,msg5
+syscall                                                          #print msg5
+
+j whileCheck                                                     #goto whileCheck
+
+choice2_else:                                                    #choice2_else
+li $v0,4
+la $a0,msg6
+syscall                                                          #print msg6
+
+move $t1,$zero                                                   #t1=0
+add $t1,$t1,$t0                                                  #t1=t0 / t1=pos
+sll $t1,$t1,2                                                    #t1=4*t0
+lw $t1,hash($t1)                                                 #t1=hash(t0)
+
+li $v0,1
+move $a0,$t1
+syscall                                                          #print hash(t1) / hash(pos)
+
+li $v0,4
+la $a0,msg7
+syscall                                                          #print msg7
+
+li $v0,1
+move $a0,$t0
+syscall                                                          #print t0 / pos
+
+li $v0,11
+addi $a0,$zero,13
+syscall                                                          #change line
+
+j whileCheck                                                     #goto whileCheck
+
+choice3:                                                         #choice3
+la $a0,hash
+
+addi $sp,$sp,-16                                                 #Create a stack(4)
+sw $t0,0($sp)                                                    #Save t-register t0
+sw $t1,4($sp)                                                    #Save t-register t1
+sw $t2,8($sp)                                                    #Save t-register t2
+sw $t3,12($sp)                                                   #Save t-register t3
+
+jal displaytable                                                 #goto displayTable
+
+lw $t0,0($sp)                                                    #Load t-register t0
+lw $t1,4($sp)                                                    #Load t-register t1
+lw $t2,8($sp)                                                    #Load t-register t2
+lw $t3,12($sp)                                                   #Load t-register t3
+addi $sp,$sp,16                                                  #Delete the stack(4)
+
+j whileCheck                                                     #goto whileCheck
+
+choice4:                                                         #choice4
+li $t3,1		                                         #t3=1 / telos=1
+
+whileCheck:                                                      #whileCheck
+beq $t3,$zero,efor                                               #if(t3==0) then start over again from for loop
+
+j exit                                                           #goto exit
+
+#START OF insertkey METHOD
+
+insertkey:                                                       #insertKey
+
+addi $sp,$sp,-4		                                         #Create a slot in the stack
+sw $ra,($sp)		                                         #Save the return adress to the stack
+
+jal findkey                                                      #We have the same arguments a0:hash , a1:key
+
+move $t0,$v0		                                         #t0: position = return value (v0)
+li $t1,-1			                                 #t0=-1
+beq $t0,$t1,ik_else	                                         #if (position==-1) goto ik_else
+
+li $v0,4
+la $a0,msg9
+syscall				                                 #print msg9
+
+j ik_end			                                 #goto ik_end / end of function
+
+ik_else:                                                         #ik_else
+
+lw $t0,N			                                 #t0=N
+lw $t1,keys			                                 #t1=keys
+bge $t1,$t0,ik_else2	                                         #if (keys>=N) goto ik_else2
+
+jal hashfunction 	                                         #We have the same arguments (a0,a1) -- we dont need to save anything
+
+move $t0,$v0		                                         #t0=hashfunction(hash,k)
+sll $t0,$t0,2		                                         #t0=t0*4 / pos=pos*4
+add $a0,$a0,$t0		                                         #move the hash by position*4 (word)
+sw $a1,($a0)		                                         #hash[position] = k (a1)
+lw $t1,keys			                                 #t1=keys
+addi $t1,$t1,1		                                         #t1++ / keys++
+sw $t1,keys			                                 #keys=t1
+j ik_end			                                 #goto ik_end / exit the function
+
+ik_else2:                                                        #ik_else2
+
+li $v0,4
+la $a0,msg10
+syscall				                                 #print msg10
+
+ik_end:                                                          #ik_end
+
+lw $ra,($sp)		                                         #Load the return address from the stack
+addi $sp,$sp,4		                                         #Delete the slot from the stack
+
+jr $ra	                                                         #return to the main program
+
+##START OF hashfunction METHOD
+
+hashfunction:
+
+move $t0,$a0                                                     #Load the hash array base to t0
+lw $t1,N                                                         #t1=N
+rem $t2,$a1,$t1                                                  #t2=k%N
+
+hf_while:                                                        #hf_while
+sll $t3,$t2,2                                                    #t3=pos*4
+add $t0,$t0,$t3                                                  #Add t3 to hash base (t0)
+lw $t3,($t0)                                                     #Load hash[pos]
+beq $t3,$zero,hf_whileEx                                         #if (t3==0) then goto hf_whileEx
+addi $t2,$t2,1                                                   #t2++ / pos++
+rem $t2,$t2,$t1                                                  #pos=pos%N
+
+j hf_while                                                       #goto hf_while
+
+hf_whileEx:                                                      #hf_whileEx
+
+move $v0,$t2                                                     #return the pos
+
+jr $ra                                                           #return to the main program
+
+##START OF findkey METHOD
+
+findkey:                                                         #findKey
+
+li $t0,0	                                                 #t0=0 / i=0
+li $t1,0	                                                 #t1=0 / found=0
+lw $t2,N	                                                 #t2=N
+rem $t3,$a1,$t2	                                                 #pos=k%N (a1 : k)
+
+fk_while:                                                        #fk_while
+
+bge $t0,$t2,e_fk_while	                                         #if (i>=N) goto e_fk_while
+bnez $t1,e_fk_while		                                 #if (found!=0) goto e_fk_while
+
+addi $t0,$t0,1			                                 #t0++ / i++
+sll $t4,$t3,2			                                 #t4=t3*4
+move $t5,$a0			                                 #t5=a0 : hash base address
+add $t5,$t5,$t4			                                 #move t5 by 4*position
+lw $t4,($t5)			                                 #t4 = hash[pos]
+bne $t4,$a1,fk_else		                                 #if (hash[position]!=k) goto fk_else
+li $t1,1				                         #t1=1 / found = 1
+j fk_while				                         #goto fk_while
+
+fk_else:                                                         #fk_else
+
+addi $t3,$t3,1			                                 #t3++ / pos++
+rem $t3,$t3,$t2			                                 #pos=pos%N
+j fk_while				                         #goto fk_while
+
+e_fk_while:                                                      #e_fk_while
+
+li $t5,1				                         #t5=1
+bne $t1,$t5,fk_else2	                                         #if (found != 1) goto fk_else2
+move $v0,$t3			                                 #return the pos
+j fk_end				                         #goto fk_end
+
+fk_else2:                                                        #fk_else2
+
+li $t5,-1				                         #t5=-1
+move $v0,$t5			                                 #return -1
+
+fk_end:                                                          #fk_end
+jr $ra	                                                         #rerurn to the main program
+
+##START OF displaytable METHOD
+
+displaytable:                                                    #displayTable
+
+move $t0,$a0                                                     #Load hash array base to t0
+li $v0,4
+la $a0,msg8
+syscall                                                          #print msg8
+
+move $t1,$zero                                                   #t1=0 / i=0
+lw $t2,N                                                         #t2=N
+for_d:                                                           #for_d
+bge $t1,$t2,efor_d                                               #if (i>N) goto efor_d
+
+li $v0,4
+la $a0,spch
+syscall                                                          #print spch
+
+li $v0,1
+move $a0,$t1
+syscall                                                          #print t1 / i
+
+li $v0,4
+la $a0,spch
+syscall                                                          #print spch
+
+lw $t3,($t0)                                                     #t3=hash[i]
+li $v0,1
+move $a0,$t3
+syscall                                                          #print hash[i]
+
+addi $t1,$t1,1                                                   #t1++ / i++
+addi $t0,$t0,4                                                   #t4=t4+4 / move the base by 4 bytes
+
+li $v0,11
+addi $a0,$zero,13
+syscall                                                          #Change line
+
+j for_d                                                          #goto for_d
+efor_d:                                                          #efor_d
+
+li $v0,11
+addi $a0,$zero,13
+syscall                                                          #Change line
+
+jr $ra                                                           #return to the main program
+
+exit:
+li $v0,10
+syscall                                                          #exit
+
+.data
+
+N: .word 10
+keys: .word 0
+hash: .space 40
+msg1: .asciiz " Menu\n1.Insert Key\n2.Find Key\n3.Display Hash Table\n4.Exit\nChoice?\n"
+msg2: .asciiz "Give new key (greater than zero): "
+msg3: .asciiz "key must be greater than zero\n"
+msg4: .asciiz "Give key to search for: "
+msg5: .asciiz "\nKey not in hash table.\n"
+msg6: .asciiz "Key value = "
+msg7: .asciiz "\nTable position = "
+msg8: .asciiz "\npos key\n"
+msg9: .asciiz "Key is already in hash talbe.\n"
+msg10: .asciiz "hash table is full\n"
+spch: .asciiz " "
